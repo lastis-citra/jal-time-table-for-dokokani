@@ -1,0 +1,9 @@
+[project]
+name = "jaltimetablefordokokani"
+requires-python = ">=3.14"
+dynamic = ["version"]
+dependencies = [
+    "requests",
+    "beautifulsoup4",
+    "cloudscraper",
+]
