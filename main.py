@@ -426,7 +426,7 @@ def format_results(flights):
     for key in DEP_BUCKET_KEYS:
         times = ','.join(flights[key])
         result.append(times)
-    return '\t'.join(result)
+    return ' '.join(result)
 
 
 def format_arrival_results(flights):
@@ -438,7 +438,7 @@ def format_arrival_results(flights):
     for key in ARR_BUCKET_KEYS:
         times = ','.join(flights[key])
         result.append(times)
-    return '\t'.join(result)
+    return ' '.join(result)
 
 # スタティックデータ
 STATIC_DATA = {
