@@ -1,9 +1,8 @@
 [project]
-name = "jaltimetablefordokokani"
+name = "jal-time-table-for-dokokani"
 requires-python = ">=3.14"
 dynamic = ["version"]
 dependencies = [
-    "requests",
     "beautifulsoup4",
-    "cloudscraper",
+    "selenium",
 ]
