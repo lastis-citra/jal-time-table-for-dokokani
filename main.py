@@ -13,7 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 DEP_BUCKET_KEYS = ['5-8', '9-11', '12-15', '16-18', '19-23']
-ARR_BUCKET_KEYS = ['5-8', '9-12', '12-15', '16-18', '19-24']
+ARR_BUCKET_KEYS = ['5-8', '9-11', '12-15', '16-18', '19-23']
 
 
 def to_half_width_digits(text):
@@ -295,14 +295,14 @@ def flights_from_records(records, direction, boarding_dt, default_year):
         else:
             if 5 <= arr_hour <= 8:
                 buckets['5-8'].append(time_str)
-            elif 9 <= arr_hour <= 12:
-                buckets['9-12'].append(time_str)
+            elif 9 <= arr_hour <= 11:
+                buckets['9-11'].append(time_str)
             elif 12 <= arr_hour <= 15:
                 buckets['12-15'].append(time_str)
             elif 16 <= arr_hour <= 18:
                 buckets['16-18'].append(time_str)
             elif 19 <= arr_hour <= 23:
-                buckets['19-24'].append(time_str)
+                buckets['19-23'].append(time_str)
 
     return buckets
 
@@ -448,7 +448,7 @@ def get_airport_schedules_with_cache(driver, airport_code):
         }
     if arr_flights is None:
         arr_flights = {
-            '5-8': [], '9-12': [], '12-15': [], '16-18': [], '19-24': []
+            '5-8': [], '9-11': [], '12-15': [], '16-18': [], '19-23': []
         }
 
     return {
@@ -477,47 +477,6 @@ def format_arrival_results(flights):
         times = ','.join(flights[key])
         result.append(times)
     return ' '.join(result)
-
-# スタティックデータ
-STATIC_DATA = {
-    'MYJ': [
-        ("06:50", "08:10"),  # JAL 431 - 5時台発
-        ("09:30", "10:55"),  # JAL 433 - 9時台発
-        ("12:05", "13:30"),  # JAL 435 - 12時台発
-        ("15:30", "16:55"),  # JAL 437 - 15時台発
-        ("16:45", "18:10"),  # JAL 439 - 16時台発
-        ("19:50", "21:10"),  # JAL 443 - 19時台発
-    ]
-}
-
-def format_static_data(flight_data):
-    """スタティックデータから時刻情報を抽出"""
-    flights = {
-        '5-8': [], '9-11': [], '12-15': [], '16-18': [], '19-23': []
-    }
-    
-    for departure, arrival in flight_data:
-        dep_parts = departure.split(':')
-        arr_parts = arrival.split(':')
-        
-        if len(dep_parts) == 2 and len(arr_parts) == 2:
-            dep_hour = int(dep_parts[0])
-            dep_formatted = f"{dep_parts[0]}{dep_parts[1]}"
-            arr_formatted = f"{arr_parts[0]}{arr_parts[1]}"
-            time_str = f"{dep_formatted}-{arr_formatted}"
-            
-            if 5 <= dep_hour <= 8:
-                flights['5-8'].append(time_str)
-            elif 9 <= dep_hour <= 11:
-                flights['9-11'].append(time_str)
-            elif 12 <= dep_hour <= 15:
-                flights['12-15'].append(time_str)
-            elif 16 <= dep_hour <= 18:
-                flights['16-18'].append(time_str)
-            elif 19 <= dep_hour <= 23:
-                flights['19-23'].append(time_str)
-    
-    return flights
 
 def main():
     """メイン処理"""
@@ -584,9 +543,6 @@ def main():
                 flights_arr = flights_from_records(directional['arr_records'], 'arrival', arr_boarding_dt, default_year)
             except Exception as e:
                 print(f"警告: {airport} の取得に失敗しました: {e}", file=sys.stderr)
-
-            if flights_dep is None and airport in STATIC_DATA:
-                flights_dep = format_static_data(STATIC_DATA[airport])
 
             if flights_dep is None:
                 flights_dep = init_bucket_dict(DEP_BUCKET_KEYS)
