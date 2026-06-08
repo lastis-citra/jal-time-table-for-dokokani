@@ -5,4 +5,5 @@ dynamic = ["version"]
 dependencies = [
     "beautifulsoup4",
     "selenium",
+    "webdriver_manager",
 ]

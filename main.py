@@ -6,6 +6,8 @@ import argparse
 from datetime import date, datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -378,7 +380,17 @@ def create_webdriver():
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    return webdriver.Chrome(options=options)
+
+    # 検出回避・安定化オプション
+    options.add_argument('--disable-blink-features=AutomationControlled')
+    options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
+    options.add_argument('--window-size=1920,1080')  # サイズ明示
+
+    # パフォーマンス改善
+    options.add_argument('--disable-extensions')
+    options.add_argument('--disable-logging')
+    options.add_argument('--log-level=3')
+    return webdriver.Chrome(options=options, service=Service(ChromeDriverManager().install()))
 
 
 def scrape_arrivals_from_html(html):
