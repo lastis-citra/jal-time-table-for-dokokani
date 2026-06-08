@@ -542,9 +542,13 @@ def main():
     if dep_boarding_dt is not None and not (start_dt <= dep_boarding_dt <= end_dt):
         print("エラー: --departure-date が JAL_MONTH の範囲外です。", file=sys.stderr)
         return
+    else:
+        print(f"羽田発の搭乗日: {dep_boarding_dt} (JAL_MONTH: {start_dt}～{end_dt})", file=sys.stderr)
     if arr_boarding_dt is not None and not (start_dt <= arr_boarding_dt <= end_dt):
         print("エラー: --arrival-date が JAL_MONTH の範囲外です。", file=sys.stderr)
         return
+    else:
+        print(f"羽田着の搭乗日: {arr_boarding_dt} (JAL_MONTH: {start_dt}～{end_dt})", file=sys.stderr)
 
     # 空港リストを読み込む
     airports = load_airport_list("airport_list.conf")
