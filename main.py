@@ -197,13 +197,8 @@ def apply_note_adjustment(dep_min, arr_min, note, boarding_dt, default_year):
     return dep_min + dep_delta, arr_min + arr_delta, True
 
 
-def parse_flight_records_from_html(html):
-    """HTMLから便レコードを抽出（便名/出発/到着/備考）"""
-    soup = BeautifulSoup(html, 'html.parser')
-    tables = soup.find_all('table')
-    if not tables:
-        return []
-
+def parse_flight_records_from_tables(tables):
+    """table要素群から便レコードを抽出（便名/出発/到着/備考）"""
     records = []
     for table in tables:
         for row in table.find_all('tr'):
@@ -228,6 +223,37 @@ def parse_flight_records_from_html(html):
                 'note': note_text,
             })
     return records
+
+
+def parse_directional_records_from_html(html):
+    """HTMLから方向別の便レコードを抽出"""
+    soup = BeautifulSoup(html, 'html.parser')
+    dep_tables = soup.select('#JS_depArrData table')
+    arr_tables = soup.select('#JS_arrDepData table')
+
+    # 方向別コンテナがないHTML向けフォールバック
+    if not dep_tables and not arr_tables:
+        all_records = parse_flight_records_from_tables(soup.find_all('table'))
+        return {
+            'dep_records': all_records,
+            'arr_records': all_records,
+            'all_records': all_records,
+        }
+
+    dep_records = parse_flight_records_from_tables(dep_tables)
+    arr_records = parse_flight_records_from_tables(arr_tables)
+    all_records = dep_records + arr_records
+
+    return {
+        'dep_records': dep_records,
+        'arr_records': arr_records,
+        'all_records': all_records,
+    }
+
+
+def parse_flight_records_from_html(html):
+    """HTMLから便レコードを抽出（後方互換: 全方向まとめ）"""
+    return parse_directional_records_from_html(html)['all_records']
 
 
 def init_bucket_dict(keys):
@@ -291,7 +317,7 @@ def load_airport_list(config_file="airport_list.conf"):
 
 def scrape_flights_from_html(html):
     """HTMLから時刻情報を抽出"""
-    records = parse_flight_records_from_html(html)
+    records = parse_directional_records_from_html(html)['dep_records']
     if not records:
         return None
     start_dt, _ = parse_month_range_env()
@@ -357,7 +383,7 @@ def create_webdriver():
 
 def scrape_arrivals_from_html(html):
     """HTMLから羽田着の時刻情報を抽出（到着時刻で分類）"""
-    records = parse_flight_records_from_html(html)
+    records = parse_directional_records_from_html(html)['arr_records']
     if not records:
         return None
     start_dt, _ = parse_month_range_env()
@@ -537,9 +563,9 @@ def main():
             try:
                 schedules = get_airport_schedules_with_cache(driver, airport)
                 html = schedules.get('html')
-                records = parse_flight_records_from_html(html)
-                flights_dep = flights_from_records(records, 'departure', dep_boarding_dt, default_year)
-                flights_arr = flights_from_records(records, 'arrival', arr_boarding_dt, default_year)
+                directional = parse_directional_records_from_html(html)
+                flights_dep = flights_from_records(directional['dep_records'], 'departure', dep_boarding_dt, default_year)
+                flights_arr = flights_from_records(directional['arr_records'], 'arrival', arr_boarding_dt, default_year)
             except Exception as e:
                 print(f"警告: {airport} の取得に失敗しました: {e}", file=sys.stderr)
 
